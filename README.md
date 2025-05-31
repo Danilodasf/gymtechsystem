@@ -63,28 +63,33 @@ src/
 
 1. **Clone o repositório:**
    ```sh
-git clone <URL_DO_REPOSITORIO>
-cd <NOME_DA_PASTA>
+   git clone <URL_DO_REPOSITORIO>
+   cd <NOME_DA_PASTA>
    ```
+
 2. **Instale as dependências:**
    ```sh
-npm install
+   npm install
    ```
+
 3. **Rodando o ambiente de desenvolvimento:**
    ```sh
-npm run dev
+   npm run dev
    ```
+
 4. **Build para produção:**
    ```sh
-npm run build
+   npm run build
    ```
+
 5. **Preview do build:**
    ```sh
-npm run preview
+   npm run preview
    ```
+
 6. **Lint:**
    ```sh
-npm run lint
+   npm run lint
    ```
 
 ---
