@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Home, 
@@ -10,7 +9,7 @@ import {
   BarChart3, 
   Settings,
   LogOut,
-  Zap
+  Dumbbell
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -50,7 +49,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-slate-200 dark:border-slate-700 p-4">
         <Link to="/dashboard" className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
+            <Dumbbell className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             GymTech
