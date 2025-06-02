@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Plan } from '@/types';
@@ -101,6 +100,25 @@ export const useDeletePlan = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Verificando se existem alunos associados ao plano:', id);
+      
+      // Primeiro, verificar se existem alunos usando este plano
+      const { data: studentsWithPlan, error: checkError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('plan_id', id);
+      
+      if (checkError) {
+        console.error('Erro ao verificar alunos associados ao plano:', checkError);
+        throw new Error(`Erro ao verificar alunos: ${checkError.message}`);
+      }
+      
+      // Se existirem alunos usando este plano, não permitir a exclusão
+      if (studentsWithPlan && studentsWithPlan.length > 0) {
+        console.error('Não é possível excluir: plano possui alunos associados');
+        throw new Error(`Este plano não pode ser excluído pois possui ${studentsWithPlan.length} aluno(s) associado(s).`);
+      }
+      
       console.log('Tentando deletar plano:', id);
       
       const { error } = await supabase

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { toast } from '../hooks/use-toast';
-import { Zap, Lock, User, Mail } from 'lucide-react';
+import { Dumbbell, Lock, User, Mail } from 'lucide-react';
 import { validateEmail, validatePassword } from '../utils/validators';
 
 const Register: React.FC = () => {
@@ -112,7 +111,7 @@ const Register: React.FC = () => {
           <CardHeader className="text-center pb-6 pt-8 px-6 sm:px-8">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Zap className="w-8 h-8 text-white" />
+                <Dumbbell className="w-8 h-8 text-white" />
               </div>
             </div>
             <CardTitle className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">

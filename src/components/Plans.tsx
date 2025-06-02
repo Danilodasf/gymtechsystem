@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -32,9 +31,14 @@ const Plans: React.FC = () => {
       });
     } catch (error) {
       console.error('Erro ao deletar plano:', error);
+      
+      // Verificar se é o erro específico de alunos associados
+      const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro ao excluir o plano.";
+      const isStudentsError = errorMessage.includes("aluno(s) associado(s)");
+      
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao excluir o plano.",
+        title: isStudentsError ? "Não é possível excluir" : "Erro",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -180,6 +184,8 @@ const Plans: React.FC = () => {
                         <AlertDialogDescription>
                           Tem certeza que deseja excluir o plano "{plan.name}"? 
                           Esta ação não pode ser desfeita.
+                          <br /><br />
+                          <strong>Nota:</strong> Não é possível excluir planos que possuem alunos associados.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

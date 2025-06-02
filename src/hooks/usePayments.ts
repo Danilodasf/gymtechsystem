@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Payment } from '@/types';
@@ -15,6 +14,35 @@ export const usePayments = () => {
       if (error) throw error;
       return data as Payment[];
     }
+  });
+};
+
+export const usePayment = (id: string) => {
+  return useQuery({
+    queryKey: ['payment', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      // Converter os nomes de colunas do banco de dados para o formato camelCase usado no front-end
+      return {
+        id: data.id,
+        studentId: data.student_id,
+        planId: data.plan_id,
+        amount: data.amount,
+        dueDate: data.due_date,
+        paymentDate: data.payment_date,
+        status: data.status,
+        method: data.method,
+        createdAt: data.created_at
+      } as Payment;
+    },
+    enabled: !!id // Só executa a query se houver um ID
   });
 };
 

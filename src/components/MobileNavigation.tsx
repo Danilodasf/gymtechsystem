@@ -11,8 +11,10 @@ import {
   DollarSign, 
   BarChart3,
   LogOut,
-  Zap,
-  Settings
+  Settings,
+  Dumbbell,
+  LayoutDashboard,
+  ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
@@ -101,8 +103,8 @@ const MobileNavigation = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Dumbbell className="w-4 h-4 text-white" />
               </div>
               <span className="text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 GymTech
