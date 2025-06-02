@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -10,7 +10,7 @@ import { Search, Plus, Edit, Trash2, Calendar, Clock, User, MapPin } from 'lucid
 import { toast } from '../hooks/use-toast';
 
 const Classes: React.FC = () => {
-  const { classes, deleteClass, getTeacherById } = useData();
+  const { classes, deleteClass, getTeacherById } = useSupabaseData();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredClasses = classes.filter(classItem =>

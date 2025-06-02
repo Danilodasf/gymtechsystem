@@ -1,11 +1,21 @@
 
 import React from 'react';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Users, CreditCard, AlertTriangle, TrendingUp } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { students, plans } = useData();
+  const { students, plans, studentsLoading, plansLoading } = useSupabaseData();
+
+  console.log('Dashboard - students:', students.length, 'plans:', plans.length);
+
+  if (studentsLoading || plansLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const activeStudents = students.filter(student => student.status === 'active').length;
   const expiredStudents = students.filter(student => student.status === 'expired').length;
@@ -96,7 +106,7 @@ const Dashboard: React.FC = () => {
         </CardHeader>
         <CardContent className="p-2 md:p-6 pt-0">
           <div className="space-y-2 md:space-y-4">
-            {planStats.map(plan => (
+            {planStats.length > 0 ? planStats.map(plan => (
               <div key={plan.id} className="flex items-center justify-between p-2 md:p-4 bg-gray-50 rounded-lg">
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-gray-900 text-xs md:text-sm truncate">{plan.name}</h3>
@@ -109,7 +119,9 @@ const Dashboard: React.FC = () => {
                   <p className="text-xs text-gray-500">alunos</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-center text-gray-500 py-4">Nenhum plano cadastrado</p>
+            )}
           </div>
         </CardContent>
       </Card>

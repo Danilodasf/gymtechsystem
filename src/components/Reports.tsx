@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Users, AlertTriangle, TrendingUp, Calendar, FileDown } from 'lucide-react';
@@ -7,7 +7,34 @@ import { toast } from '../hooks/use-toast';
 import jsPDF from 'jspdf';
 
 const Reports: React.FC = () => {
-  const { students, plans, payments } = useData();
+  const { students, plans, payments, studentsLoading, plansLoading, paymentsLoading } = useSupabaseData();
+
+  if (studentsLoading || plansLoading || paymentsLoading) {
+    return (
+      <div className="space-y-4 md:space-y-8">
+        <div className="flex flex-col gap-2 md:gap-0 md:flex-row md:justify-between md:items-center">
+          <div className="mb-2 md:mb-0">
+            <h1 className="text-lg md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Relatórios Simples
+            </h1>
+            <p className="text-xs md:text-base text-gray-600 mt-1">Carregando dados...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="p-2 md:p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </CardHeader>
+              <CardContent className="p-2 md:p-6 pt-0">
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const activeStudents = students.filter(student => student.status === 'active');
   const expiredStudents = students.filter(student => student.status === 'expired');
@@ -40,6 +67,23 @@ const Reports: React.FC = () => {
     };
   });
 
+  // Payment by students statistics
+  const paymentsByStudent = students.map(student => {
+    const studentPayments = payments.filter(p => p.studentId === student.id);
+    const paidAmount = studentPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const pendingAmount = studentPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+    const overdueAmount = studentPayments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+    
+    return {
+      student,
+      totalPayments: studentPayments.length,
+      paidAmount,
+      pendingAmount,
+      overdueAmount,
+      totalAmount: paidAmount + pendingAmount + overdueAmount
+    };
+  }).filter(item => item.totalPayments > 0);
+
   const exportToPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -55,7 +99,7 @@ const Reports: React.FC = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('GymTech - Relatorio Gerencial', margin, 25);
+    doc.text('GymTech - Relatorio Gerencial Completo', margin, 25);
     
     // Reset text color and position
     doc.setTextColor(0, 0, 0);
@@ -139,7 +183,7 @@ const Reports: React.FC = () => {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(59, 130, 246);
-    doc.text('DISTRIBUICAO POR PLANOS', margin, yPosition);
+    doc.text('PLANOS ATIVOS POR TIPO', margin, yPosition);
     yPosition += 15;
 
     if (planStats.length > 0) {
@@ -152,7 +196,7 @@ const Reports: React.FC = () => {
       doc.setFont('helvetica', 'normal');
       
       planStats.forEach((plan, index) => {
-        const planText = `- ${plan.name} (R$ ${plan.price.toFixed(2)}): ${plan.totalStudents} alunos (${plan.activeStudents} ativos)`;
+        const planText = `- ${plan.name} (R$ ${plan.price.toFixed(2)}): ${plan.totalStudents} alunos (${plan.activeStudents} ativos) - Receita: R$ ${plan.revenue.toFixed(2)}`;
         doc.text(planText, margin + 10, yPosition + 10 + (index * 15));
       });
       
@@ -160,6 +204,52 @@ const Reports: React.FC = () => {
     } else {
       doc.setTextColor(128, 128, 128);
       doc.text('Nenhum plano cadastrado ainda', margin + 10, yPosition + 10);
+      yPosition += 40;
+    }
+
+    // Section: Payments by Students
+    if (yPosition > pageHeight - 120) {
+      doc.addPage();
+      yPosition = 30;
+    }
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(59, 130, 246);
+    doc.text('PAGAMENTOS POR ALUNO', margin, yPosition);
+    yPosition += 15;
+
+    if (paymentsByStudent.length > 0) {
+      const maxItemsPerPage = Math.floor((pageHeight - yPosition - 40) / 20);
+      
+      paymentsByStudent.forEach((item, index) => {
+        if (index > 0 && index % maxItemsPerPage === 0) {
+          doc.addPage();
+          yPosition = 30;
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(59, 130, 246);
+          doc.text('PAGAMENTOS POR ALUNO (continuacao)', margin, yPosition);
+          yPosition += 15;
+        }
+
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 18, 'FD');
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${item.student.name}`, margin + 5, yPosition + 5);
+        
+        doc.setFont('helvetica', 'normal');
+        const paymentInfo = `Pagos: R$ ${item.paidAmount.toFixed(2)} | Pendentes: R$ ${item.pendingAmount.toFixed(2)} | Vencidos: R$ ${item.overdueAmount.toFixed(2)} | Total: R$ ${item.totalAmount.toFixed(2)}`;
+        doc.text(paymentInfo, margin + 5, yPosition + 12);
+        
+        yPosition += 25;
+      });
+    } else {
+      doc.setTextColor(128, 128, 128);
+      doc.text('Nenhum pagamento registrado ainda', margin + 10, yPosition + 10);
       yPosition += 40;
     }
 
@@ -197,19 +287,23 @@ const Reports: React.FC = () => {
     }
 
     // Footer
-    const footerY = pageHeight - 20;
-    doc.setFontSize(10);
-    doc.setTextColor(128, 128, 128);
-    doc.text('Este relatorio foi gerado automaticamente pelo sistema GymTech', margin, footerY);
-    doc.text(`Pagina 1 de ${doc.getNumberOfPages()}`, pageWidth - margin - 30, footerY);
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      const footerY = pageHeight - 20;
+      doc.setFontSize(10);
+      doc.setTextColor(128, 128, 128);
+      doc.text('Este relatorio foi gerado automaticamente pelo sistema GymTech', margin, footerY);
+      doc.text(`Pagina ${i} de ${totalPages}`, pageWidth - margin - 30, footerY);
+    }
     
     // Save the PDF
-    const fileName = `relatorio-gymtech-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `relatorio-gymtech-completo-${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
     
     toast({
       title: "PDF exportado com sucesso",
-      description: `O relatorio foi salvo como ${fileName}`,
+      description: `O relatorio completo foi salvo como ${fileName}`,
     });
   };
 
@@ -227,7 +321,7 @@ const Reports: React.FC = () => {
           className="w-full md:w-auto bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg text-xs md:text-sm h-8 md:h-10"
         >
           <FileDown size={14} className="mr-1 md:mr-2" />
-          Exportar PDF
+          Exportar PDF Completo
         </Button>
       </div>
 
@@ -286,7 +380,6 @@ const Reports: React.FC = () => {
         </Card>
       </div>
 
-      {/* Detailed Reports */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
         {/* Students by Status */}
         <Card>
@@ -387,6 +480,40 @@ const Reports: React.FC = () => {
             {planStats.length === 0 && (
               <div className="col-span-2 text-center py-4 md:py-6 text-gray-500">
                 <div className="text-xs md:text-sm">Nenhum plano cadastrado ainda</div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* New Section: Payments by Student */}
+      <Card>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-sm md:text-base">Pagamentos por Aluno</CardTitle>
+          <CardDescription className="text-xs md:text-sm">Resumo financeiro de cada aluno</CardDescription>
+        </CardHeader>
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="space-y-2 md:space-y-3">
+            {paymentsByStudent.length > 0 ? (
+              paymentsByStudent.map(item => (
+                <div key={item.student.id} className="flex items-center justify-between p-2 md:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900 text-xs md:text-sm">{item.student.name}</div>
+                    <div className="text-xs text-gray-600">
+                      {item.totalPayments} {item.totalPayments === 1 ? 'pagamento' : 'pagamentos'}
+                    </div>
+                  </div>
+                  <div className="text-right text-xs">
+                    <div className="text-green-600 font-semibold">Pago: R$ {item.paidAmount.toFixed(2)}</div>
+                    <div className="text-yellow-600">Pendente: R$ {item.pendingAmount.toFixed(2)}</div>
+                    <div className="text-red-600">Vencido: R$ {item.overdueAmount.toFixed(2)}</div>
+                    <div className="text-blue-600 font-bold">Total: R$ {item.totalAmount.toFixed(2)}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 md:py-6 text-gray-500">
+                <div className="text-xs md:text-sm">Nenhum pagamento registrado ainda</div>
               </div>
             )}
           </div>

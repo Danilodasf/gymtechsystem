@@ -1,18 +1,18 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Plus, Search, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, Search, DollarSign, AlertTriangle, CheckCircle, Edit, Trash2 } from 'lucide-react';
 import { toast } from '../hooks/use-toast';
 
 const Payments: React.FC = () => {
-  const { students, plans, payments, updatePayment, addPayment } = useData();
+  const { students, plans, payments, updatePayment, addPayment, deletePayment } = useSupabaseData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showQuickPayment, setShowQuickPayment] = useState<string | null>(null);
   const [paymentDate, setPaymentDate] = useState('');
@@ -54,6 +54,16 @@ const Payments: React.FC = () => {
     setPaymentDate('');
   };
 
+  const handleDeletePayment = (paymentId: string, studentName: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir o pagamento de ${studentName}?`)) {
+      deletePayment(paymentId);
+      toast({
+        title: "Pagamento excluído",
+        description: "O pagamento foi removido do sistema",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -74,6 +84,19 @@ const Payments: React.FC = () => {
   const pendingPayments = payments.filter(p => p.status === 'pending').length;
   const overduePayments = payments.filter(p => p.status === 'overdue').length;
   const totalRevenue = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+
+  // Filtrar estudantes que não têm pagamentos recentes ou apenas pagamentos pendentes/vencidos
+  const studentsForQuickPayment = students.filter(student => {
+    if (student.status !== 'active') return false;
+    
+    const studentPayments = payments.filter(p => p.studentId === student.id);
+    const recentPaidPayment = studentPayments.find(p => 
+      p.status === 'paid' && 
+      new Date(p.paymentDate || p.dueDate) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    );
+    
+    return !recentPaidPayment;
+  });
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -144,77 +167,78 @@ const Payments: React.FC = () => {
       </Card>
 
       {/* Quick Payment for Students without recent payments */}
-      <Card>
-        <CardHeader className="p-3 md:p-6">
-          <CardTitle className="text-base md:text-lg">Registro Rápido de Pagamento</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6 pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {students.filter(student => student.status === 'active').map(student => {
-              const plan = plans.find(p => p.id === student.planId);
-              const recentPayment = payments.find(p => p.studentId === student.id && p.status === 'paid');
-              
-              return (
-                <Card key={student.id} className="p-3 md:p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-medium text-sm md:text-base">{student.name}</h4>
-                      <p className="text-xs md:text-sm text-gray-600">{plan?.name}</p>
-                      <p className="text-xs md:text-sm font-semibold text-green-600">R$ {plan?.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  
-                  {showQuickPayment === student.id ? (
-                    <div className="space-y-2 md:space-y-3">
+      {studentsForQuickPayment.length > 0 && (
+        <Card>
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="text-base md:text-lg">Registro Rápido de Pagamento</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6 pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              {studentsForQuickPayment.map(student => {
+                const plan = plans.find(p => p.id === student.planId);
+                
+                return (
+                  <Card key={student.id} className="p-3 md:p-4">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
-                        <Label htmlFor={`date-${student.id}`} className="text-xs md:text-sm">Data do Pagamento</Label>
-                        <Input
-                          id={`date-${student.id}`}
-                          type="date"
-                          value={paymentDate}
-                          onChange={(e) => setPaymentDate(e.target.value)}
-                          className="mt-1 text-xs md:text-sm h-8 md:h-9"
-                        />
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm"
-                          onClick={() => handleQuickPayment(student.id)}
-                          className="bg-green-600 hover:bg-green-700 text-xs md:text-sm h-7 md:h-8 px-2 md:px-3"
-                        >
-                          Confirmar
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setShowQuickPayment(null);
-                            setPaymentDate('');
-                          }}
-                          className="text-xs md:text-sm h-7 md:h-8 px-2 md:px-3"
-                        >
-                          Cancelar
-                        </Button>
+                        <h4 className="font-medium text-sm md:text-base">{student.name}</h4>
+                        <p className="text-xs md:text-sm text-gray-600">{plan?.name}</p>
+                        <p className="text-xs md:text-sm font-semibold text-green-600">R$ {plan?.price.toFixed(2)}</p>
                       </div>
                     </div>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      onClick={() => {
-                        setShowQuickPayment(student.id);
-                        setPaymentDate(new Date().toISOString().split('T')[0]);
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm h-7 md:h-8"
-                    >
-                      Registrar Pagamento
-                    </Button>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                    
+                    {showQuickPayment === student.id ? (
+                      <div className="space-y-2 md:space-y-3">
+                        <div>
+                          <Label htmlFor={`date-${student.id}`} className="text-xs md:text-sm">Data do Pagamento</Label>
+                          <Input
+                            id={`date-${student.id}`}
+                            type="date"
+                            value={paymentDate}
+                            onChange={(e) => setPaymentDate(e.target.value)}
+                            className="mt-1 text-xs md:text-sm h-8 md:h-9"
+                          />
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm"
+                            onClick={() => handleQuickPayment(student.id)}
+                            className="bg-green-600 hover:bg-green-700 text-xs md:text-sm h-7 md:h-8 px-2 md:px-3"
+                          >
+                            Confirmar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setShowQuickPayment(null);
+                              setPaymentDate('');
+                            }}
+                            className="text-xs md:text-sm h-7 md:h-8 px-2 md:px-3"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setShowQuickPayment(student.id);
+                          setPaymentDate(new Date().toISOString().split('T')[0]);
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm h-7 md:h-8"
+                      >
+                        Registrar Pagamento
+                      </Button>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Payments Table */}
       <Card>
@@ -254,8 +278,8 @@ const Payments: React.FC = () => {
                       </TableCell>
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
                       <TableCell>
-                        {payment.status !== 'paid' && (
-                          <div className="flex space-x-1 md:space-x-2">
+                        <div className="flex space-x-1 md:space-x-2">
+                          {payment.status !== 'paid' && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -264,12 +288,32 @@ const Payments: React.FC = () => {
                             >
                               Marcar como Pago
                             </Button>
-                          </div>
-                        )}
+                          )}
+                          
+                          <Link to={`/payments/edit/${payment.id}`}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-blue-600 hover:bg-blue-50 text-xs h-6 md:h-8 px-1 md:px-2"
+                            >
+                              <Edit size={12} />
+                            </Button>
+                          </Link>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeletePayment(payment.id, student?.name || '')}
+                            className="text-red-600 hover:bg-red-50 text-xs h-6 md:h-8 px-1 md:px-2"
+                          >
+                            <Trash2 size={12} />
+                          </Button>
+                        </div>
+                        
                         {payment.status === 'paid' && payment.paymentDate && (
-                          <span className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 mt-1">
                             Pago em {new Date(payment.paymentDate).toLocaleDateString('pt-BR')}
-                          </span>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

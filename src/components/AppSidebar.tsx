@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Home, 
@@ -9,7 +10,7 @@ import {
   BarChart3, 
   Settings,
   LogOut,
-  Dumbbell
+  Zap
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -44,12 +45,28 @@ export function AppSidebar() {
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
+  // Get username from user metadata or fallback to email
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.username) {
+      return user.user_metadata.username;
+    }
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    return user?.email?.split('@')[0] || 'Usuário';
+  };
+
+  const getInitials = () => {
+    const displayName = getUserDisplayName();
+    return displayName.charAt(0).toUpperCase();
+  };
+
   return (
     <Sidebar className="border-r border-slate-200 dark:border-slate-700">
       <SidebarHeader className="border-b border-slate-200 dark:border-slate-700 p-4">
         <Link to="/dashboard" className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-            <Dumbbell className="w-5 h-5 text-white" />
+            <Zap className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             GymTech
@@ -104,11 +121,11 @@ export function AppSidebar() {
         <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {user?.username?.charAt(0).toUpperCase()}
+              {getInitials()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                {user?.username}
+                {getUserDisplayName()}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Administrador</p>
             </div>

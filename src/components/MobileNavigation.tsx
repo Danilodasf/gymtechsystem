@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -22,6 +21,22 @@ const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
+
+  // Get username from user metadata or fallback to email
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.username) {
+      return user.user_metadata.username;
+    }
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    return user?.email?.split('@')[0] || 'Usuário';
+  };
+
+  const getInitials = () => {
+    const displayName = getUserDisplayName();
+    return displayName.charAt(0).toUpperCase();
+  };
 
   // Mapear rotas para títulos das páginas
   const getPageTitle = (pathname: string) => {
@@ -124,10 +139,10 @@ const MobileNavigation = () => {
               <div className="p-3 mb-3 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200/50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {user?.username?.charAt(0).toUpperCase()}
+                    {getInitials()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-slate-900 text-sm truncate">{user?.username}</p>
+                    <p className="font-semibold text-slate-900 text-sm truncate">{getUserDisplayName()}</p>
                     <p className="text-xs text-slate-500">Administrador</p>
                   </div>
                 </div>

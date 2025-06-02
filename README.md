@@ -1,109 +1,73 @@
-# GymTechSystem
+# Welcome to your Lovable project
 
-![GymTechSystem](https://img.shields.io/badge/GymTechSystem-React-blue?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38bdf8?style=for-the-badge&logo=tailwindcss)
+## Project info
 
-> **Sistema moderno e escalável para gestão de academias, focado em experiência do usuário, performance e facilidade de manutenção.**
+**URL**: https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4
 
----
+## How can I edit this code?
 
-## ✨ Visão Geral
-O **GymTechSystem** é uma solução completa para academias, permitindo o controle de alunos, professores, planos, pagamentos, aulas e relatórios gerenciais. O sistema foi projetado para ser altamente modular, fácil de evoluir e com uma interface responsiva e agradável.
+There are several ways of editing your application.
 
----
+**Use Lovable**
 
-## 🚀 Tecnologias Utilizadas
+Simply visit the [Lovable Project](https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4) and start prompting.
 
-- **[Vite](https://vitejs.dev/)** – Bundler ultrarrápido para desenvolvimento moderno
-- **[React 18+](https://react.dev/)** – Biblioteca para construção de interfaces reativas
-- **[TypeScript](https://www.typescriptlang.org/)** – Tipagem estática para maior robustez
-- **[Tailwind CSS](https://tailwindcss.com/)** – Utilitários para estilização rápida e responsiva
-- **[shadcn/ui](https://ui.shadcn.com/)** – Componentes UI modernos e acessíveis
-- **[React Router DOM](https://reactrouter.com/)** – Gerenciamento de rotas SPA
-- **[React Hook Form](https://react-hook-form.com/)** + **[Zod](https://zod.dev/)** – Formulários e validação
-- **[@tanstack/react-query](https://tanstack.com/query/latest)** – Gerenciamento de estado assíncrono
-- **[Recharts](https://recharts.org/)** – Gráficos e visualização de dados
-- **[Lucide Icons](https://lucide.dev/)** – Ícones SVG modernos
+Changes made via Lovable will be committed automatically to this repo.
 
-> Consulte o `package.json` para a lista completa de dependências e versões.
+**Use your preferred IDE**
 
----
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-## 🧩 Funcionalidades Principais
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-- **Dashboard**: Visão geral de alunos, planos, receitas e alertas
-- **Gestão de Alunos**: Cadastro, edição, status, planos e vencimentos
-- **Gestão de Professores**: Cadastro, especialidades e status
-- **Gestão de Planos**: Criação, edição, valores e duração
-- **Pagamentos**: Controle de mensalidades, status (pago, pendente, vencido) e métodos
-- **Aulas**: Cadastro, agendamento, professores, alunos inscritos
-- **Relatórios**: Visão gerencial, exportação em PDF, estatísticas
-- **Autenticação**: Login, cadastro e perfil do usuário (simulado/local)
-- **Interface Responsiva**: Layout adaptado para desktop e mobile
+Follow these steps:
 
----
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-## 📁 Estrutura do Projeto
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-```text
-src/
-  components/        # Componentes reutilizáveis e páginas principais
-  contexts/          # Contextos globais (ex: autenticação, dados)
-  hooks/             # Hooks customizados
-  lib/               # Utilitários e funções auxiliares
-  pages/             # Páginas e rotas
-  types/             # Tipos globais TypeScript
-  utils/             # Funções utilitárias e validadores
-  App.tsx            # Componente principal
-  main.tsx           # Ponto de entrada da aplicação
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
 ```
 
----
+**Edit a file directly in GitHub**
 
-## ⚙️ Instalação e Uso
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-1. **Clone o repositório:**
-   ```sh
-   git clone <URL_DO_REPOSITORIO>
-   cd <NOME_DA_PASTA>
-   ```
+**Use GitHub Codespaces**
 
-2. **Instale as dependências:**
-   ```sh
-   npm install
-   ```
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-3. **Rodando o ambiente de desenvolvimento:**
-   ```sh
-   npm run dev
-   ```
+## What technologies are used for this project?
 
-4. **Build para produção:**
-   ```sh
-   npm run build
-   ```
+This project is built with:
 
-5. **Preview do build:**
-   ```sh
-   npm run preview
-   ```
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-6. **Lint:**
-   ```sh
-   npm run lint
-   ```
+## How can I deploy this project?
 
----
+Simply open [Lovable](https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4) and click on Share -> Publish.
 
-## 🔒 Autenticação e Dados
-- O sistema utiliza autenticação simulada/local para login, cadastro e perfil.
-- Os dados (alunos, professores, planos, pagamentos, aulas) são mantidos em memória (Context API), ideal para testes e desenvolvimento.
-- Para produção, recomenda-se integrar com uma API real (REST, GraphQL, Supabase, Firebase, etc).
+## Can I connect a custom domain to my Lovable project?
 
----
+Yes, you can!
 
-## 🛠️ Configurações e Customizações
-- **Porta padrão:** 8080
-- **Alias:** `@` aponta para `src/`
-- **Tailwind:** Customizações em `tailwind.config.ts` e animações via `tailwindcss-animate`
-- **PostCSS:** Plugins `tailwindcss` e `autoprefixer`
-- **TypeScript:** Configurações em `tsconfig.json` e `tsconfig.app.json`
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

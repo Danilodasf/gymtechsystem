@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -14,31 +15,146 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
-    username: user?.username || '',
+    username: '',
+    fullName: '',
     newPassword: '',
     confirmPassword: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const [isLoading, setIsLoading] = useState(false);
 
-    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user?.id) {
+        // Buscar perfil do usuário na tabela profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setFormData(prev => ({
+            ...prev,
+            username: profile.username || '',
+            fullName: profile.full_name || ''
+          }));
+        } else {
+          // Se não existe perfil, usar dados do user metadata
+          setFormData(prev => ({
+            ...prev,
+            username: user.user_metadata?.username || user.email?.split('@')[0] || '',
+            fullName: user.user_metadata?.full_name || ''
+          }));
+        }
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+        toast({
+          title: "Erro na atualização",
+          description: "As senhas não coincidem",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Atualizar perfil no Supabase
+      if (user?.id) {
+        // Verificar se já existe um perfil
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        const profileData = {
+          username: formData.username,
+          full_name: formData.fullName
+        };
+
+        if (existingProfile) {
+          // Atualizar perfil existente
+          const { error } = await supabase
+            .from('profiles')
+            .update(profileData)
+            .eq('id', user.id);
+
+          if (error) {
+            console.error('Erro ao atualizar perfil:', error);
+            throw new Error('Erro ao atualizar perfil no banco de dados');
+          }
+        } else {
+          // Criar novo perfil
+          const { error } = await supabase
+            .from('profiles')
+            .insert([{
+              id: user.id,
+              ...profileData
+            }]);
+
+          if (error) {
+            console.error('Erro ao criar perfil:', error);
+            throw new Error('Erro ao criar perfil no banco de dados');
+          }
+        }
+
+        // Atualizar senha se fornecida
+        if (formData.newPassword) {
+          const { error: passwordError } = await supabase.auth.updateUser({
+            password: formData.newPassword
+          });
+
+          if (passwordError) {
+            console.error('Erro ao atualizar senha:', passwordError);
+            throw new Error('Erro ao atualizar senha');
+          }
+        }
+
+        // Atualizar metadata do usuário
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            username: formData.username,
+            full_name: formData.fullName
+          }
+        });
+
+        if (metadataError) {
+          console.error('Erro ao atualizar metadata:', metadataError);
+        }
+
+        toast({
+          title: "Perfil atualizado",
+          description: "Suas informações foram atualizadas com sucesso",
+        });
+
+        // Limpar campos de senha
+        setFormData(prev => ({
+          ...prev,
+          newPassword: '',
+          confirmPassword: ''
+        }));
+
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      console.error('Erro ao salvar perfil:', error);
       toast({
-        title: "Erro na atualização",
-        description: "As senhas não coincidem",
+        title: "Erro",
+        description: error.message || "Não foi possível atualizar o perfil",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    updateProfile(formData.username, formData.newPassword || undefined);
-    
-    toast({
-      title: "Perfil atualizado",
-      description: "Suas informações foram atualizadas com sucesso",
-    });
-    
-    navigate('/dashboard');
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -69,7 +185,7 @@ const Profile: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             <div className="space-y-1 md:space-y-2">
               <Label htmlFor="username" className="text-slate-700 font-medium text-sm md:text-base">
-                Nome do Perfil
+                Nome de Usuário
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-3 w-3 md:h-4 md:w-4" />
@@ -79,6 +195,22 @@ const Profile: React.FC = () => {
                   onChange={(e) => handleInputChange('username', e.target.value)}
                   placeholder="Seu nome de usuário"
                   required
+                  className="pl-8 md:pl-10 bg-slate-50/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm md:text-base h-9 md:h-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1 md:space-y-2">
+              <Label htmlFor="fullName" className="text-slate-700 font-medium text-sm md:text-base">
+                Nome Completo
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-3 w-3 md:h-4 md:w-4" />
+                <Input
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  placeholder="Seu nome completo"
                   className="pl-8 md:pl-10 bg-slate-50/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm md:text-base h-9 md:h-10"
                 />
               </div>
@@ -154,9 +286,10 @@ const Profile: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-4 md:pt-6">
               <Button 
                 type="submit"
+                disabled={isLoading}
                 className="flex-1 h-9 md:h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-sm md:text-base"
               >
-                Salvar Alterações
+                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
               </Button>
               <Button 
                 type="button" 

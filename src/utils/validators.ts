@@ -9,28 +9,9 @@ export const validateCPF = (cpf: string): boolean => {
   // Remove caracteres não numéricos
   const cleanCPF = cpf.replace(/\D/g, '');
   
-  // Verifica se tem 11 dígitos
-  if (cleanCPF.length !== 11) return false;
-  
-  // Verifica se todos os dígitos são iguais
-  if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-  
-  // Validação dos dígitos verificadores
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
-  }
-  let digit1 = 11 - (sum % 11);
-  if (digit1 > 9) digit1 = 0;
-  
-  sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
-  }
-  let digit2 = 11 - (sum % 11);
-  if (digit2 > 9) digit2 = 0;
-  
-  return digit1 === parseInt(cleanCPF.charAt(9)) && digit2 === parseInt(cleanCPF.charAt(10));
+  // Aceita qualquer sequência de números digitados pelo usuário
+  // Verifica apenas se tem pelo menos 1 dígito e no máximo 11
+  return cleanCPF.length >= 1 && cleanCPF.length <= 11;
 };
 
 export const validatePhone = (phone: string): boolean => {

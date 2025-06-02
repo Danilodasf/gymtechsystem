@@ -1,237 +1,154 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { toast } from '../hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useCreatePlan, useUpdatePlan } from '../hooks/usePlans';
 import { Plan } from '../types';
-import { formatCurrency } from '../utils/validators';
+import { toast } from '../hooks/use-toast';
 
-const PlanForm: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { plans, addPlan, updatePlan } = useData();
-  const isEditing = Boolean(id);
+interface PlanFormProps {
+  plan?: Plan;
+  onClose: () => void;
+}
 
+const PlanForm: React.FC<PlanFormProps> = ({ plan, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     duration: 1,
-    price: '',
+    price: 0,
     description: ''
   });
 
-  const [errors, setErrors] = useState({
-    name: '',
-    duration: '',
-    price: ''
-  });
+  const createPlanMutation = useCreatePlan();
+  const updatePlanMutation = useUpdatePlan();
 
   useEffect(() => {
-    if (isEditing && id) {
-      const plan = plans.find(p => p.id === id);
+    if (plan) {
+      setFormData({
+        name: plan.name,
+        duration: plan.duration,
+        price: plan.price,
+        description: plan.description || ''
+      });
+    }
+  }, [plan]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
       if (plan) {
-        setFormData({
-          name: plan.name,
-          duration: plan.duration,
-          price: formatCurrency((plan.price * 100).toString()),
-          description: plan.description || ''
+        await updatePlanMutation.mutateAsync({
+          id: plan.id,
+          plan: formData
+        });
+        toast({
+          title: "Plano atualizado",
+          description: "O plano foi atualizado com sucesso.",
+        });
+      } else {
+        await createPlanMutation.mutateAsync(formData);
+        toast({
+          title: "Plano criado",
+          description: "O plano foi criado com sucesso.",
         });
       }
-    }
-  }, [id, isEditing, plans]);
-
-  const validateForm = () => {
-    const newErrors = {
-      name: '',
-      duration: '',
-      price: ''
-    };
-    let isValid = true;
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Nome do plano é obrigatório';
-      isValid = false;
-    }
-
-    if (formData.duration < 1 || formData.duration > 24) {
-      newErrors.duration = 'Duração deve ser entre 1 e 24 meses';
-      isValid = false;
-    }
-
-    const numericPrice = parseFloat(formData.price.replace(/\D/g, '')) / 100;
-    if (!formData.price || numericPrice <= 0) {
-      newErrors.price = 'Valor deve ser maior que zero';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    // Converter valor formatado para número
-    const numericPrice = parseFloat(formData.price.replace(/\D/g, '')) / 100;
-
-    const planData = {
-      name: formData.name,
-      duration: formData.duration,
-      price: numericPrice,
-      description: formData.description
-    };
-
-    if (isEditing && id) {
-      updatePlan(id, planData);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao salvar plano:', error);
       toast({
-        title: "Plano atualizado",
-        description: "Os dados do plano foram atualizados com sucesso",
-      });
-    } else {
-      addPlan(planData as Omit<Plan, 'id'>);
-      toast({
-        title: "Plano cadastrado",
-        description: "Novo plano foi adicionado ao sistema",
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o plano.",
+        variant: "destructive",
       });
     }
-
-    navigate('/plans');
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    let formattedValue = value;
-
-    if (field === 'price' && typeof value === 'string') {
-      formattedValue = formatCurrency(value);
-    }
-
-    setFormData(prev => ({ ...prev, [field]: formattedValue }));
-    
-    // Limpar erro do campo ao digitar
-    if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'duration' || name === 'price' ? Number(value) : value
+    }));
   };
-
-  const numericPrice = parseFloat(formData.price.replace(/\D/g, '')) / 100;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3 md:space-y-6">
-      <div>
-        <h1 className="text-lg md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          {isEditing ? 'Editar Plano' : 'Novo Plano'}
-        </h1>
-        <p className="text-xs md:text-base text-gray-600 mt-1 md:mt-2">
-          {isEditing ? 'Atualize os dados do plano' : 'Preencha os dados para cadastrar um novo plano'}
-        </p>
-      </div>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>{plan ? 'Editar Plano' : 'Novo Plano'}</CardTitle>
+        <CardDescription>
+          {plan ? 'Atualize as informações do plano' : 'Preencha os dados do novo plano'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nome do Plano</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-      <Card className="p-2 md:p-6">
-        <CardHeader className="p-2 md:p-6">
-          <CardTitle className="text-sm md:text-lg">Dados do Plano</CardTitle>
-        </CardHeader>
-        <CardContent className="p-2 md:p-6 pt-0">
-          <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
-            <div className="space-y-1 md:space-y-2">
-              <Label htmlFor="name" className="text-xs md:text-sm">Nome do Plano *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Ex: Plano Mensal, Plano Trimestral..."
-                required
-                className={`text-xs md:text-sm h-8 md:h-10 ${errors.name ? 'border-red-500' : ''}`}
-              />
-              {errors.name && (
-                <p className="text-xs text-red-500">{errors.name}</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duração (meses)</Label>
+            <Input
+              id="duration"
+              name="duration"
+              type="number"
+              min="1"
+              value={formData.duration}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 md:gap-6">
-              <div className="space-y-1 md:space-y-2">
-                <Label htmlFor="duration" className="text-xs md:text-sm">Duração (meses) *</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  min="1"
-                  max="24"
-                  value={formData.duration}
-                  onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 1)}
-                  required
-                  className={`text-xs md:text-sm h-8 md:h-10 ${errors.duration ? 'border-red-500' : ''}`}
-                />
-                {errors.duration && (
-                  <p className="text-xs text-red-500">{errors.duration}</p>
-                )}
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="price">Preço (R$)</Label>
+            <Input
+              id="price"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.price}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-              <div className="space-y-1 md:space-y-2">
-                <Label htmlFor="price" className="text-xs md:text-sm">Valor (R$) *</Label>
-                <Input
-                  id="price"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="0,00"
-                  required
-                  className={`text-xs md:text-sm h-8 md:h-10 ${errors.price ? 'border-red-500' : ''}`}
-                />
-                {errors.price && (
-                  <p className="text-xs text-red-500">{errors.price}</p>
-                )}
-              </div>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+            />
+          </div>
 
-            <div className="space-y-1 md:space-y-2">
-              <Label htmlFor="description" className="text-xs md:text-sm">Descrição (opcional)</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Descreva os benefícios e características do plano..."
-                rows={3}
-                className="text-xs md:text-sm resize-none"
-              />
-            </div>
-
-            {formData.duration > 0 && numericPrice > 0 && (
-              <div className="p-2 md:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-1 md:mb-2 text-xs md:text-sm">Resumo do Plano</h3>
-                <div className="space-y-1 text-xs text-blue-800">
-                  <p>• Duração: {formData.duration} {formData.duration === 1 ? 'mês' : 'meses'}</p>
-                  <p>• Valor total: R$ {numericPrice.toFixed(2)}</p>
-                  <p>• Valor por mês: R$ {(numericPrice / formData.duration).toFixed(2)}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col xs:flex-row space-y-2 xs:space-y-0 xs:space-x-2 md:space-x-4 pt-3 md:pt-6">
-              <Button 
-                type="submit"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs md:text-sm h-8 md:h-10"
-              >
-                {isEditing ? 'Atualizar' : 'Cadastrar'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate('/plans')}
-                className="text-xs md:text-sm h-8 md:h-10"
-              >
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex space-x-2">
+            <Button
+              type="submit"
+              disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+            >
+              {createPlanMutation.isPending || updatePlanMutation.isPending ? 'Salvando...' : plan ? 'Atualizar' : 'Criar'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

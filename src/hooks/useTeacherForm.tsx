@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { validateEmail, validateCPF, validatePhone, formatCPF, formatPhone } from '../utils/validators';
 
 interface FormData {
@@ -15,7 +15,7 @@ interface FormData {
 
 export const useTeacherForm = () => {
   const { id } = useParams();
-  const { teachers } = useData();
+  const { teachers } = useSupabaseData();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState<FormData>({

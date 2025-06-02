@@ -1,273 +1,216 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { toast } from '../hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useCreatePayment, useUpdatePayment } from '../hooks/usePayments';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Payment } from '../types';
-import { formatCurrency } from '../utils/validators';
+import { toast } from '../hooks/use-toast';
 
-const PaymentForm: React.FC = () => {
-  const navigate = useNavigate();
-  const { students, plans, addPayment } = useData();
+interface PaymentFormProps {
+  payment?: Payment;
+  onClose: () => void;
+}
 
+const PaymentForm: React.FC<PaymentFormProps> = ({ payment, onClose }) => {
   const [formData, setFormData] = useState({
     studentId: '',
     planId: '',
-    amount: '',
+    amount: 0,
     dueDate: '',
     paymentDate: '',
-    method: '',
-    status: 'pending' as 'pending' | 'paid' | 'overdue'
+    status: 'pending' as 'pending' | 'paid' | 'overdue',
+    method: '' as 'cash' | 'card' | 'pix' | 'transfer' | ''
   });
 
-  const [errors, setErrors] = useState({
-    studentId: '',
-    amount: '',
-    dueDate: ''
-  });
+  const { students, plans } = useSupabaseData();
+  const createPaymentMutation = useCreatePayment();
+  const updatePaymentMutation = useUpdatePayment();
 
-  const validateForm = () => {
-    const newErrors = {
-      studentId: '',
-      amount: '',
-      dueDate: ''
-    };
-    let isValid = true;
-
-    if (!formData.studentId) {
-      newErrors.studentId = 'Selecione um aluno';
-      isValid = false;
+  useEffect(() => {
+    if (payment) {
+      setFormData({
+        studentId: payment.studentId,
+        planId: payment.planId,
+        amount: payment.amount,
+        dueDate: payment.dueDate,
+        paymentDate: payment.paymentDate || '',
+        status: payment.status,
+        method: payment.method || ''
+      });
     }
+  }, [payment]);
 
-    if (!formData.amount || parseFloat(formData.amount.replace(/\D/g, '')) <= 0) {
-      newErrors.amount = 'Valor deve ser maior que zero';
-      isValid = false;
-    }
-
-    if (!formData.dueDate) {
-      newErrors.dueDate = 'Data de vencimento é obrigatória';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const paymentData = {
+      ...formData,
+      paymentDate: formData.paymentDate || undefined,
+      method: formData.method || undefined
+    };
 
-    if (!validateForm()) {
-      return;
-    }
-
-    const selectedStudent = students.find(s => s.id === formData.studentId);
-    const selectedPlan = plans.find(p => p.id === formData.planId);
-
-    if (!selectedStudent) {
+    try {
+      if (payment) {
+        await updatePaymentMutation.mutateAsync({
+          id: payment.id,
+          payment: paymentData
+        });
+        toast({
+          title: "Pagamento atualizado",
+          description: "O pagamento foi atualizado com sucesso.",
+        });
+      } else {
+        await createPaymentMutation.mutateAsync(paymentData);
+        toast({
+          title: "Pagamento criado",
+          description: "O pagamento foi criado com sucesso.",
+        });
+      }
+      onClose();
+    } catch (error) {
+      console.error('Erro ao salvar pagamento:', error);
       toast({
         title: "Erro",
-        description: "Selecione um aluno válido",
+        description: "Ocorreu um erro ao salvar o pagamento.",
         variant: "destructive",
       });
-      return;
     }
-
-    // Converter valor formatado para número
-    const numericAmount = parseFloat(formData.amount.replace(/\D/g, '')) / 100;
-
-    addPayment({
-      studentId: formData.studentId,
-      planId: formData.planId,
-      amount: numericAmount,
-      dueDate: formData.dueDate,
-      paymentDate: formData.paymentDate || undefined,
-      status: formData.status,
-      method: formData.method as 'cash' | 'card' | 'pix' | 'transfer'
-    } as Omit<Payment, 'id'>);
-
-    toast({
-      title: "Pagamento cadastrado",
-      description: "Novo pagamento foi adicionado ao sistema",
-    });
-
-    navigate('/payments');
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    let formattedValue = value;
-
-    if (field === 'amount') {
-      formattedValue = formatCurrency(value);
-    }
-
-    setFormData(prev => ({ ...prev, [field]: formattedValue }));
-
-    // Auto-fill plan and amount when student is selected
-    if (field === 'studentId') {
-      const student = students.find(s => s.id === value);
-      if (student) {
-        const plan = plans.find(p => p.id === student.planId);
-        if (plan) {
-          setFormData(prev => ({
-            ...prev,
-            planId: plan.id,
-            amount: formatCurrency((plan.price * 100).toString())
-          }));
-        }
-      }
-    }
-
-    // Limpar erro do campo ao digitar
-    if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'amount' ? Number(value) : value
+    }));
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Cadastrar Pagamento
-        </h1>
-        <p className="text-gray-600 mt-2">Registre um novo pagamento de mensalidade</p>
-      </div>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>{payment ? 'Editar Pagamento' : 'Novo Pagamento'}</CardTitle>
+        <CardDescription>
+          {payment ? 'Atualize as informações do pagamento' : 'Preencha os dados do novo pagamento'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="studentId">Aluno</Label>
+            <Select value={formData.studentId} onValueChange={(value) => setFormData(prev => ({ ...prev, studentId: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um aluno" />
+              </SelectTrigger>
+              <SelectContent>
+                {students.map((student) => (
+                  <SelectItem key={student.id} value={student.id}>
+                    {student.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-          <CardTitle className="text-white">Dados do Pagamento</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="studentId">Aluno *</Label>
-                <Select value={formData.studentId} onValueChange={(value) => handleInputChange('studentId', value)}>
-                  <SelectTrigger className={errors.studentId ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Selecione um aluno" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students.map(student => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.name} - {student.cpf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.studentId && (
-                  <p className="text-sm text-red-500">{errors.studentId}</p>
-                )}
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="planId">Plano</Label>
+            <Select value={formData.planId} onValueChange={(value) => setFormData(prev => ({ ...prev, planId: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um plano" />
+              </SelectTrigger>
+              <SelectContent>
+                {plans.map((plan) => (
+                  <SelectItem key={plan.id} value={plan.id}>
+                    {plan.name} - R$ {plan.price.toFixed(2)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="planId">Plano</Label>
-                <Select value={formData.planId} onValueChange={(value) => handleInputChange('planId', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um plano" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {plans.map(plan => (
-                      <SelectItem key={plan.id} value={plan.id}>
-                        {plan.name} - R$ {plan.price.toFixed(2)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="amount">Valor (R$)</Label>
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.amount}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="amount">Valor (R$) *</Label>
-                <Input
-                  id="amount"
-                  value={formData.amount}
-                  onChange={(e) => handleInputChange('amount', e.target.value)}
-                  placeholder="0,00"
-                  required
-                  className={errors.amount ? 'border-red-500' : ''}
-                />
-                {errors.amount && (
-                  <p className="text-sm text-red-500">{errors.amount}</p>
-                )}
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="dueDate">Data de Vencimento</Label>
+            <Input
+              id="dueDate"
+              name="dueDate"
+              type="date"
+              value={formData.dueDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Data de Vencimento *</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={formData.dueDate}
-                  onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                  required
-                  className={errors.dueDate ? 'border-red-500' : ''}
-                />
-                {errors.dueDate && (
-                  <p className="text-sm text-red-500">{errors.dueDate}</p>
-                )}
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="paymentDate">Data de Pagamento</Label>
+            <Input
+              id="paymentDate"
+              name="paymentDate"
+              type="date"
+              value={formData.paymentDate}
+              onChange={handleChange}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="paymentDate">Data de Pagamento</Label>
-                <Input
-                  id="paymentDate"
-                  type="date"
-                  value={formData.paymentDate}
-                  onChange={(e) => handleInputChange('paymentDate', e.target.value)}
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value: 'pending' | 'paid' | 'overdue') => setFormData(prev => ({ ...prev, status: value }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="paid">Pago</SelectItem>
+                <SelectItem value="overdue">Vencido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="method">Método de Pagamento</Label>
-                <Select value={formData.method} onValueChange={(value) => handleInputChange('method', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o método" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Dinheiro</SelectItem>
-                    <SelectItem value="card">Cartão</SelectItem>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="transfer">Transferência</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="method">Método de Pagamento</Label>
+            <Select value={formData.method} onValueChange={(value: 'cash' | 'card' | 'pix' | 'transfer') => setFormData(prev => ({ ...prev, method: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o método" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Dinheiro</SelectItem>
+                <SelectItem value="card">Cartão</SelectItem>
+                <SelectItem value="pix">PIX</SelectItem>
+                <SelectItem value="transfer">Transferência</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="paid">Pago</SelectItem>
-                    <SelectItem value="overdue">Vencido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex space-x-4 pt-6">
-              <Button 
-                type="submit"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                Cadastrar
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate('/payments')}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex space-x-2">
+            <Button
+              type="submit"
+              disabled={createPaymentMutation.isPending || updatePaymentMutation.isPending}
+            >
+              {createPaymentMutation.isPending || updatePaymentMutation.isPending ? 'Salvando...' : payment ? 'Atualizar' : 'Criar'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

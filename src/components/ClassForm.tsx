@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -12,7 +12,7 @@ import { toast } from '../hooks/use-toast';
 const ClassForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { classes, teachers, addClass, updateClass } = useData();
+  const { classes, teachers, addClass, updateClass } = useSupabaseData();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState({
@@ -25,8 +25,7 @@ const ClassForm: React.FC = () => {
     maxStudents: 10,
     status: 'scheduled' as 'scheduled' | 'completed' | 'cancelled',
     type: '',
-    location: '',
-    dayOfWeek: ''
+    location: ''
   });
 
   useEffect(() => {
@@ -43,8 +42,7 @@ const ClassForm: React.FC = () => {
           maxStudents: classItem.maxStudents,
           status: classItem.status,
           type: classItem.type,
-          location: classItem.location,
-          dayOfWeek: classItem.dayOfWeek
+          location: classItem.location
         });
       }
     }
@@ -57,7 +55,7 @@ const ClassForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.teacherId || !formData.date || !formData.startTime || !formData.endTime || !formData.type.trim() || !formData.location.trim() || !formData.dayOfWeek.trim()) {
+    if (!formData.name.trim() || !formData.teacherId || !formData.date || !formData.startTime || !formData.endTime || !formData.type.trim() || !formData.location.trim()) {
       toast({
         title: "Erro",
         description: "Por favor, preencha todos os campos obrigatórios",
@@ -75,8 +73,14 @@ const ClassForm: React.FC = () => {
       return;
     }
 
+    // Extrair o dia da semana da data selecionada
+    const selectedDate = new Date(formData.date);
+    const daysOfWeek = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+    const dayOfWeek = daysOfWeek[selectedDate.getDay()];
+
     const classData = {
       ...formData,
+      dayOfWeek: dayOfWeek,
       enrolledStudents: isEditing ? classes.find(c => c.id === id)?.enrolledStudents || [] : []
     };
 
@@ -98,16 +102,6 @@ const ClassForm: React.FC = () => {
   };
 
   const activeTeachers = teachers.filter(teacher => teacher.status === 'active');
-
-  const daysOfWeek = [
-    { value: 'segunda-feira', label: 'Segunda-feira' },
-    { value: 'terça-feira', label: 'Terça-feira' },
-    { value: 'quarta-feira', label: 'Quarta-feira' },
-    { value: 'quinta-feira', label: 'Quinta-feira' },
-    { value: 'sexta-feira', label: 'Sexta-feira' },
-    { value: 'sábado', label: 'Sábado' },
-    { value: 'domingo', label: 'Domingo' }
-  ];
 
   return (
     <div className="space-y-6">
@@ -194,25 +188,6 @@ const ClassForm: React.FC = () => {
                   min={new Date().toISOString().split('T')[0]}
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Dia da Semana *</label>
-                <Select
-                  value={formData.dayOfWeek}
-                  onValueChange={(value) => handleInputChange('dayOfWeek', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o dia da semana" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {daysOfWeek.map(day => (
-                      <SelectItem key={day.value} value={day.value}>
-                        {day.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div>

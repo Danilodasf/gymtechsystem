@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
@@ -6,26 +7,34 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { toast } from '../hooks/use-toast';
-import { Dumbbell, Lock, User } from 'lucide-react';
+import { Zap, Lock, User } from 'lucide-react';
 import { validateEmail } from '../utils/validators';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({ username: '', password: '' });
-  const { login } = useAuth();
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Already authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const validateForm = () => {
-    const newErrors = { username: '', password: '' };
+    const newErrors = { email: '', password: '' };
     let isValid = true;
 
-    if (!username.trim()) {
-      newErrors.username = 'Usuário ou e-mail é obrigatório';
+    if (!email.trim()) {
+      newErrors.email = 'E-mail é obrigatório';
       isValid = false;
-    } else if (username.includes('@') && !validateEmail(username)) {
-      newErrors.username = 'E-mail inválido';
+    } else if (!validateEmail(email)) {
+      newErrors.email = 'E-mail inválido';
       isValid = false;
     }
 
@@ -51,21 +60,25 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(username, password);
+      console.log('Attempting login with:', email);
+      const success = await login(email, password);
+      
       if (success) {
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo ao GymTech",
         });
-        navigate('/dashboard');
+        console.log('Login successful, navigating to dashboard');
+        navigate('/dashboard', { replace: true });
       } else {
         toast({
           title: "Erro no login",
-          description: "Usuário ou senha inválidos",
+          description: "E-mail ou senha inválidos",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Erro no login",
         description: "Ocorreu um erro inesperado",
@@ -83,7 +96,7 @@ const Login: React.FC = () => {
           <CardHeader className="text-center pb-4 md:pb-6 pt-6 md:pt-8 px-4 md:px-8">
             <div className="flex justify-center mb-3 md:mb-4">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Dumbbell className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                <Zap className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
             </div>
             <CardTitle className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -97,28 +110,28 @@ const Login: React.FC = () => {
           <CardContent className="px-4 md:px-8 pb-6 md:pb-8">
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
               <div className="space-y-1 md:space-y-2">
-                <Label htmlFor="username" className="text-slate-700 font-medium text-xs md:text-sm">
-                  Usuário ou E-mail
+                <Label htmlFor="email" className="text-slate-700 font-medium text-xs md:text-sm">
+                  E-mail
                 </Label>
                 <div className="relative">
                   <User className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-3 w-3 md:h-4 md:w-4" />
                   <Input
-                    id="username"
-                    type="text"
-                    value={username}
+                    id="email"
+                    type="email"
+                    value={email}
                     onChange={(e) => {
-                      setUsername(e.target.value);
-                      if (errors.username) setErrors(prev => ({ ...prev, username: '' }));
+                      setEmail(e.target.value);
+                      if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
                     }}
-                    placeholder="Digite seu usuário ou e-mail"
+                    placeholder="Digite seu e-mail"
                     required
                     className={`h-10 md:h-12 pl-8 md:pl-10 bg-slate-50/50 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-xs md:text-sm ${
-                      errors.username ? 'border-red-500' : ''
+                      errors.email ? 'border-red-500' : ''
                     }`}
                   />
                 </div>
-                {errors.username && (
-                  <p className="text-xs text-red-500 mt-1">{errors.username}</p>
+                {errors.email && (
+                  <p className="text-xs text-red-500 mt-1">{errors.email}</p>
                 )}
               </div>
               

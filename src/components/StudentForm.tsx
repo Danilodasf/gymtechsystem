@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -14,7 +13,7 @@ import { validateEmail, validateCPF, validatePhone, formatCPF, formatPhone } fro
 const StudentForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { students, plans, addStudent, updateStudent } = useData();
+  const { students, plans, addStudent, updateStudent } = useSupabaseData();
   const isEditing = Boolean(id);
 
   const [formData, setFormData] = useState({

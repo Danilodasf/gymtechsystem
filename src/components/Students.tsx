@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -17,7 +16,7 @@ import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 
 const Students: React.FC = () => {
-  const { students, deleteStudent, getPlanById, payments, updatePayment, addPayment, plans } = useData();
+  const { students, deleteStudent, getPlanById, payments, updatePayment, addPayment, plans } = useSupabaseData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);

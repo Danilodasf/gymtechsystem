@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
+import { useSupabaseData } from '../contexts/SupabaseDataProvider';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -12,7 +12,7 @@ import SpecialtyManager from './SpecialtyManager';
 
 const TeacherForm: React.FC = () => {
   const navigate = useNavigate();
-  const { addTeacher, updateTeacher } = useData();
+  const { addTeacher, updateTeacher } = useSupabaseData();
   
   const {
     formData,
