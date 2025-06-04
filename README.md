@@ -141,6 +141,7 @@ Isto irá iniciar a aplicação Vite, geralmente na porta http://localhost:8080.
 
 📂 Estrutura de Pastas
 A estrutura de pastas do projeto é organizada da seguinte forma:
+
 gymtechsystem/
 ├── public/                 # Arquivos estáticos (robots.txt, favicon)
 ├── src/
