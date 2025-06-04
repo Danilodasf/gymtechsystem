@@ -6,6 +6,20 @@ import { Users, AlertTriangle, TrendingUp, Calendar, FileDown } from 'lucide-rea
 import { toast } from '../hooks/use-toast';
 import jsPDF from 'jspdf';
 
+// Função para corrigir o problema de fuso horário nas datas
+const formatLocalDate = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // Criar uma data com o fuso horário local
+  const date = new Date(dateString);
+  
+  // Ajustar para o fuso horário local
+  const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  
+  // Formatar para o padrão brasileiro
+  return localDate.toLocaleDateString('pt-BR');
+};
+
 const Reports: React.FC = () => {
   const { students, plans, payments, studentsLoading, plansLoading, paymentsLoading } = useSupabaseData();
 
@@ -547,7 +561,7 @@ const Reports: React.FC = () => {
         return [
           student.name.length > 20 ? student.name.substring(0, 20) + '...' : student.name,
           plan?.name || 'Desconhecido',
-          new Date(student.expirationDate).toLocaleDateString('pt-BR'),
+          formatLocalDate(student.expirationDate),
           daysToExpire.toString()
         ];
       });
@@ -609,7 +623,7 @@ const Reports: React.FC = () => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(80, 80, 80);
-        const studentInfo = `E-mail: ${item.student.email} | Plano: ${plan?.name || 'Não definido'} | Vencimento: ${new Date(item.student.expirationDate).toLocaleDateString('pt-BR')}`;
+        const studentInfo = `E-mail: ${item.student.email} | Plano: ${plan?.name || 'Não definido'} | Vencimento: ${formatLocalDate(item.student.expirationDate)}`;
         doc.text(studentInfo, margin + 5, yPosition + 20);
         
         yPosition += 30;
@@ -647,7 +661,7 @@ const Reports: React.FC = () => {
             const planName = plans.find(p => p.id === payment.planId)?.name || '-';
             
             return [
-              new Date(payment.dueDate).toLocaleDateString('pt-BR'),
+              formatLocalDate(payment.dueDate),
               `R$ ${payment.amount.toFixed(2)}`,
               statusText,
               payment.method ? 
@@ -974,10 +988,10 @@ const Reports: React.FC = () => {
                                 return (
                                   <tr key={payment.id} className="border-b border-blue-50 hover:bg-blue-50">
                                     <td className="px-2 py-1">
-                                      {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
+                                      {formatLocalDate(payment.dueDate)}
                                       {payment.paymentDate && (
                                         <span className="text-green-600 ml-1">
-                                          (Pago: {new Date(payment.paymentDate).toLocaleDateString('pt-BR')})
+                                          (Pago: {formatLocalDate(payment.paymentDate)})
                                         </span>
                                       )}
                                     </td>
@@ -1046,7 +1060,7 @@ const Reports: React.FC = () => {
                         {daysToExpire} {daysToExpire === 1 ? 'dia' : 'dias'}
                       </div>
                       <div className="text-xs text-gray-500">
-                        Vence em {new Date(student.expirationDate).toLocaleDateString('pt-BR')}
+                        Vence em {formatLocalDate(student.expirationDate)}
                       </div>
                     </div>
                   </div>
