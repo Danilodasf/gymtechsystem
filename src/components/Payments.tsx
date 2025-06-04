@@ -10,6 +10,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Plus, Search, DollarSign, AlertTriangle, CheckCircle, Edit, Trash2 } from 'lucide-react';
 import { toast } from '../hooks/use-toast';
 
+// Função para corrigir o problema de fuso horário nas datas
+const formatLocalDate = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // Criar uma data com o fuso horário local
+  const date = new Date(dateString);
+  
+  // Ajustar para o fuso horário local
+  const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  
+  // Formatar para o padrão brasileiro
+  return localDate.toLocaleDateString('pt-BR');
+};
+
 const Payments: React.FC = () => {
   const { students, plans, payments, updatePayment, addPayment, deletePayment } = useSupabaseData();
   const [searchTerm, setSearchTerm] = useState('');
@@ -273,7 +287,7 @@ const Payments: React.FC = () => {
                       <TableCell className="text-xs md:text-sm">{plan?.name}</TableCell>
                       <TableCell className="font-semibold text-xs md:text-sm">R$ {payment.amount.toFixed(2)}</TableCell>
                       <TableCell className="text-xs md:text-sm">
-                        {new Date(payment.dueDate).toLocaleDateString('pt-BR')}
+                        {formatLocalDate(payment.dueDate)}
                       </TableCell>
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
                       <TableCell>
@@ -311,7 +325,7 @@ const Payments: React.FC = () => {
                         
                         {payment.status === 'paid' && payment.paymentDate && (
                           <div className="text-xs text-gray-500 mt-1">
-                            Pago em {new Date(payment.paymentDate).toLocaleDateString('pt-BR')}
+                            Pago em {formatLocalDate(payment.paymentDate)}
                           </div>
                         )}
                       </TableCell>
