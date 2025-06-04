@@ -1,73 +1,181 @@
-# Welcome to your Lovable project
+# 🏋️ GymTech System 🚀
 
-## Project info
+Bem-vindo ao GymTech System, uma aplicação web completa para gerenciamento de academias. Este sistema robusto e intuitivo foi construído com tecnologias modernas para fornecer uma experiência de usuário fluida e eficiente para administradores de academias, instrutores e alunos.
 
-**URL**: https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4
+![GymTech Dashboard](https://img.shields.io/badge/GymTech-Dashboard_Example-blue?style=for-the-badge&logo=react)
+*(Sugestão: Adicione um screenshot da tela principal do dashboard aqui)*
 
-## How can I edit this code?
+## ✨ Visão Geral
 
-There are several ways of editing your application.
+O GymTech System visa simplificar as operações diárias de uma academia, desde o cadastro de alunos e planos até o gerenciamento de aulas, pagamentos e relatórios. Com uma interface responsiva, ele se adapta a diferentes dispositivos, garantindo acessibilidade em desktops, tablets e smartphones.
 
-**Use Lovable**
+## 🌟 Funcionalidades Principais
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4) and start prompting.
+O sistema oferece uma gama de funcionalidades para cobrir todas as necessidades de uma academia moderna:
 
-Changes made via Lovable will be committed automatically to this repo.
+* 🔑 **Autenticação Segura:**
+    * Registro de novos usuários (administradores/funcionários).
+    * Login com e-mail e senha.
+    * Rotas protegidas para garantir que apenas usuários autenticados acessem o sistema.
+* 📊 **Dashboard Interativo:**
+    * Visão geral com estatísticas chave, como total de alunos, alunos ativos, planos ativos e pagamentos.
+    * Distribuição de alunos por planos.
+    * Ações rápidas para funcionalidades comuns.
+* 🎓 **Gerenciamento de Alunos:**
+    * Cadastro, edição e exclusão de alunos.
+    * Visualização da lista de alunos com busca e filtros.
+    * Associação de alunos a planos.
+    * Controle de status (ativo, inativo, expirado).
+* 📝 **Gerenciamento de Planos:**
+    * Criação, edição e exclusão de planos de academia.
+    * Definição de nome, duração, preço e descrição para cada plano.
+* 💰 **Gerenciamento de Pagamentos:**
+    * Registro de pagamentos de alunos.
+    * Visualização do histórico de pagamentos com status (pendente, pago, vencido).
+    * Opção de marcar pagamentos como pagos e registrar método de pagamento.
+* 👨‍🏫 **Gerenciamento de Professores:**
+    * Cadastro, edição e exclusão de professores.
+    * Gerenciamento de especialidades dos professores.
+    * Controle de status (ativo, inativo).
+* 🤸 **Gerenciamento de Aulas:**
+    * Agendamento, edição e exclusão de aulas.
+    * Associação de professores e definição de horários, tipo, local e capacidade máxima de alunos.
+    * Visualização de aulas com informações detalhadas.
+* 📄 **Relatórios:**
+    * Visão geral dos dados da academia, incluindo estatísticas de alunos e pagamentos.
+    * Identificação de alunos com planos próximos do vencimento.
+    * Opção de exportar relatórios detalhados em PDF.
+* 👤 **Perfil do Usuário:**
+    * Atualização das informações do perfil do usuário autenticado (nome de usuário, nome completo).
+    * Opção de alterar a senha.
+* 📱 **Interface Responsiva:**
+    * Layout adaptável para desktops e dispositivos móveis, garantindo uma boa experiência em qualquer tela.
+    * Navegação mobile otimizada.
 
-**Use your preferred IDE**
+## 🛠️ Tecnologias Utilizadas
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Este projeto foi construído utilizando um stack moderno de tecnologias de desenvolvimento web:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **Frontend:**
+    * [React](https://reactjs.org/): Biblioteca JavaScript para construção de interfaces de usuário.
+    * [TypeScript](https://www.typescriptlang.org/): Superset do JavaScript que adiciona tipagem estática.
+    * [Vite](https://vitejs.dev/): Ferramenta de build extremamente rápida para desenvolvimento frontend.
+    * [Tailwind CSS](https://tailwindcss.com/): Framework CSS utility-first para estilização rápida e customizável.
+    * [shadcn/ui](https://ui.shadcn.com/): Coleção de componentes de UI reutilizáveis e acessíveis.
+    * [React Router DOM](https://reactrouter.com/): Para gerenciamento de rotas na aplicação.
+    * [TanStack React Query](https://tanstack.com/query/latest): Para fetching, caching, e atualização de dados de forma eficiente.
+    * [Lucide React](https://lucide.dev/): Biblioteca de ícones SVG.
+    * [Zod](https://zod.dev/): Para validação de schemas e dados.
+    * [date-fns](https://date-fns.org/): Para manipulação de datas.
+    * [Recharts](https://recharts.org/): Biblioteca de gráficos para React (utilizada no dashboard e relatórios).
+    * [jsPDF](https://github.com/parallax/jsPDF): Para geração de relatórios em PDF.
+* **Backend & Banco de Dados:**
+    * [Supabase](https://supabase.io/): Plataforma open-source que oferece banco de dados PostgreSQL, autenticação, APIs instantâneas, e mais.
+* **Linting & Formatação:**
+    * [ESLint](https://eslint.org/): Para análise estática de código e identificação de padrões problemáticos.
+* **Gerenciamento de Pacotes:**
+    * [npm](https://www.npmjs.com/)
 
-Follow these steps:
+## 🚀 Começando
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Siga estas instruções para configurar e rodar o projeto localmente.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Pré-requisitos
 
-# Step 3: Install the necessary dependencies.
-npm i
+* [Node.js](https://nodejs.org/) (versão LTS recomendada)
+* [npm](https://www.npmjs.com/) (geralmente vem com o Node.js)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Configuração do Ambiente
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone <URL_DO_SEU_REPOSITORIO_GIT>
+    cd gymtechsystem # ou o nome da pasta do seu projeto
+    ```
+
+2.  **Instale as dependências:**
+    ```bash
+    npm install
+    ```
+   
+
+3.  **Configuração do Supabase:**
+    O projeto utiliza Supabase para backend e banco de dados. As credenciais do Supabase estão configuradas em `src/integrations/supabase/client.ts`.
+    Para um ambiente de desenvolvimento seguro, é recomendado utilizar variáveis de ambiente.
+
+    * Crie um arquivo `.env` na raiz do projeto.
+    * Adicione as seguintes variáveis com suas credenciais do Supabase:
+        ```env
+        VITE_SUPABASE_URL=SUA_SUPABASE_URL
+        VITE_SUPABASE_ANON_KEY=SUA_SUPABASE_ANON_KEY
+        ```
+    * Modifique o arquivo `src/integrations/supabase/client.ts` para usar essas variáveis de ambiente:
+        ```typescript
+        // src/integrations/supabase/client.ts
+        import { createClient } from '@supabase/supabase-js';
+
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error("Supabase URL and Anon Key must be defined in .env file");
+        }
+
+        export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: {
+            storage: localStorage,
+            persistSession: true,
+            autoRefreshToken: true,
+          }
+        });
+        ```
+    * **Observação:** Certifique-se de que as tabelas e funções necessárias estejam configuradas no seu projeto Supabase conforme as definições em `src/integrations/supabase/types.ts`.
+
+### Rodando o Servidor de Desenvolvimento
+
+Para iniciar o servidor de desenvolvimento com recarregamento automático:
+
+```bash
 npm run dev
-```
+Isto irá iniciar a aplicação Vite, geralmente na porta http://localhost:8080.
 
-**Edit a file directly in GitHub**
+📂 Estrutura de Pastas
+A estrutura de pastas do projeto é organizada da seguinte forma:
+gymtechsystem/
+├── public/                 # Arquivos estáticos (robots.txt, favicon)
+├── src/
+│   ├── components/         # Componentes React da aplicação
+│   │   └── ui/             # Componentes shadcn/ui customizados
+│   ├── contexts/           # Context API providers (AuthContext, SupabaseDataProvider)
+│   ├── hooks/              # Hooks customizados (useStudents, useAuth, etc.)
+│   ├── integrations/       # Integrações com serviços externos (Supabase)
+│   │   └── supabase/
+│   │       ├── client.ts   # Configuração do cliente Supabase
+│   │       └── types.ts    # Tipos gerados pelo Supabase (schema do DB)
+│   ├── lib/                # Funções utilitárias gerais (ex: cn)
+│   ├── pages/              # Componentes de página (Index, NotFound)
+│   ├── types/              # Definições de tipos TypeScript globais
+│   ├── utils/              # Utilitários específicos (validators, dataTransforms)
+│   ├── App.css             # Estilos globais para App
+│   ├── App.tsx             # Componente principal da aplicação e configuração de rotas
+│   ├── index.css           # Estilos Tailwind CSS e customizações base
+│   └── main.tsx            # Ponto de entrada da aplicação React
+├── tailwind.config.ts      # Configuração do Tailwind CSS
+├── vite.config.ts          # Configuração do Vite
+├── tsconfig.json           # Configuração principal do TypeScript
+├── package.json            # Metadados do projeto e dependências
+└── README.md               # Este arquivo
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+📜 Scripts Disponíveis
+No package.json, você encontrará os seguintes scripts:
 
-**Use GitHub Codespaces**
+npm run dev: Inicia o servidor de desenvolvimento Vite.
+npm run build: Compila a aplicação para produção.
+npm run build:dev: Compila a aplicação para produção em modo de desenvolvimento.
+npm run lint: Executa o ESLint para verificar erros de código.
+npm run preview: Inicia um servidor local para visualizar a build de produção.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/914524e9-b3d3-4975-844e-5267d47cdbb4) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+🚀 Deploy
+Para fazer o deploy da sua aplicação, primeiro gere a build de produção:
+npm run build
+Isso criará uma pasta dist/ com os arquivos estáticos otimizados. Você pode então hospedar o conteúdo desta pasta em qualquer plataforma de hospedagem de sites estáticos ou que suporte aplicações Vite/React.
