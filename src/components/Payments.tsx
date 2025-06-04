@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSupabaseData } from '../contexts/SupabaseDataProvider';
@@ -43,7 +42,7 @@ const Payments: React.FC = () => {
       dueDate: new Date().toISOString().split('T')[0],
       paymentDate: paymentDate || new Date().toISOString().split('T')[0],
       status: 'paid',
-      method: 'cash'
+      method: 'cash' // Valor interno 'cash', exibido como 'Dinheiro' na interface
     });
 
     toast({
