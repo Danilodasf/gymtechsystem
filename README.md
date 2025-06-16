@@ -3,7 +3,6 @@
 Bem-vindo ao GymTech System, uma aplicação web completa para gerenciamento de academias. Este sistema robusto e intuitivo foi construído com tecnologias modernas para fornecer uma experiência de usuário fluida e eficiente para administradores de academias, instrutores e alunos.
 
 ![GymTech Dashboard](https://img.shields.io/badge/GymTech-Dashboard_Example-blue?style=for-the-badge&logo=react)
-*(Sugestão: Adicione um screenshot da tela principal do dashboard aqui)*
 
 ## ✨ Visão Geral
 
@@ -175,8 +174,3 @@ npm run build: Compila a aplicação para produção.
 npm run build:dev: Compila a aplicação para produção em modo de desenvolvimento.
 npm run lint: Executa o ESLint para verificar erros de código.
 npm run preview: Inicia um servidor local para visualizar a build de produção.
-
-🚀 Deploy
-Para fazer o deploy da sua aplicação, primeiro gere a build de produção:
-npm run build
-Isso criará uma pasta dist/ com os arquivos estáticos otimizados. Você pode então hospedar o conteúdo desta pasta em qualquer plataforma de hospedagem de sites estáticos ou que suporte aplicações Vite/React.
